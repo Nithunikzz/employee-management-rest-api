@@ -15,14 +15,13 @@ type Employee struct {
 	Salary     float64 `json:"salary"`
 }
 
-// Filter describes the optional criteria for listing employees.
-// Zero values mean "no filter" for that field.
+
 type Filter struct {
-	Name       string   // case-insensitive substring match
-	Department string   // case-insensitive exact match
-	MinSalary  *float64 // inclusive
-	MaxSalary  *float64 // inclusive
-	SortBy     string   // "name", "department", "salary" or "" (by id)
+	Name       string   
+	Department string   
+	MinSalary  *float64 
+	MaxSalary  *float64 
+	SortBy     string   
 	Desc       bool
 }
 
