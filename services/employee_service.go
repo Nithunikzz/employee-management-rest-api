@@ -1,9 +1,12 @@
-package employee
+package services
 
 import (
 	"context"
 	"errors"
 	"strings"
+
+	"github.com/employee-management-rest-api/models"
+	"github.com/employee-management-rest-api/repository"
 )
 
 type ValidationError struct {
@@ -14,30 +17,21 @@ func (e *ValidationError) Error() string {
 	return strings.Join(e.Problems, "; ")
 }
 
-// Repository is the persistence the service depends on. *Store implements it.
-type Repository interface {
-	Create(e Employee) Employee
-	List(f Filter) []Employee
-}
-
-// CreateInput is the data needed to create an employee.
 type CreateInput struct {
 	Name       string
 	Department string
 	Salary     *float64
 }
 
-// Service holds the employee business rules, independent of HTTP.
-type Service struct {
-	repo Repository
+type EmployeeService struct {
+	repo repository.EmployeeRepository
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewEmployeeService(repo repository.EmployeeRepository) *EmployeeService {
+	return &EmployeeService{repo: repo}
 }
 
-// Create validates in and stores a new employee.
-func (s *Service) Create(_ context.Context, in CreateInput) (Employee, error) {
+func (s *EmployeeService) Create(_ context.Context, in CreateInput) (models.Employee, error) {
 	in.Name = strings.TrimSpace(in.Name)
 	in.Department = strings.TrimSpace(in.Department)
 
@@ -54,13 +48,13 @@ func (s *Service) Create(_ context.Context, in CreateInput) (Employee, error) {
 		problems = append(problems, "salary must be >= 0")
 	}
 	if len(problems) > 0 {
-		return Employee{}, &ValidationError{Problems: problems}
+		return models.Employee{}, &ValidationError{Problems: problems}
 	}
 
-	return s.repo.Create(Employee{Name: in.Name, Department: in.Department, Salary: *in.Salary}), nil
+	return s.repo.Create(models.Employee{Name: in.Name, Department: in.Department, Salary: *in.Salary}), nil
 }
 
-func (s *Service) List(_ context.Context, f Filter) ([]Employee, error) {
+func (s *EmployeeService) List(_ context.Context, f models.Filter) ([]models.Employee, error) {
 	if f.MinSalary != nil && f.MaxSalary != nil && *f.MinSalary > *f.MaxSalary {
 		return nil, &ValidationError{Problems: []string{"min_salary must be <= max_salary"}}
 	}
